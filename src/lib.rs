@@ -25,22 +25,30 @@ pub mod cli {
 }
 
 pub mod huff_btree {
-    use std::io::Error;
-
 	#[derive(Debug)]
-	enum HuffNode{
-	Branch {
-		weight: usize,
-		left: Box<HuffNode>,
-		right: Box<HuffNode>,
-	},
-	Leaf {
-		char: char,
-		weight: usize
+	pub enum HuffNode{
+		Branch {
+			weight: usize,
+			left: Box<HuffNode>,
+			right: Box<HuffNode>,
+		},
+		Leaf {
+			char: char,
+			weight: usize,
+		}
 	}
+
+trait HuffMethods {
+
+	fn get_weight(&self) -> usize;
+
+	fn create_branch(left: Box<HuffNode>, right: Box<HuffNode>) -> HuffNode;
+
+	fn create_leaf(char: char, weight: usize) -> HuffNode;
+
 }
 
-impl HuffNode {
+impl HuffMethods for HuffNode {
 
 	fn get_weight(&self) -> usize {
 		match *self {
@@ -55,62 +63,155 @@ impl HuffNode {
 	}
 
 	fn create_leaf(char: char, weight: usize) -> HuffNode {
+
 		HuffNode::Leaf { char, weight }
 	}
 
 }
 
-	struct HuffBTree {
+#[derive(Debug)]
+	pub struct HuffBTree {
 		root: Option<Box<HuffNode>>
 	}
 
-	impl HuffBTree {
-		fn new(min: (char,usize), max: (char,usize)) -> HuffBTree {
+	pub	trait HuffBTreeMethods {
+			fn new(root: Box<HuffNode>) -> Self;
 
-			let left = HuffNode::create_leaf(min.0, min.1);
-			let right = HuffNode::create_leaf(max.0, max.1);
+			fn run(frequencies: &mut HuffVector) -> HuffBTree;
 
-			let branch = HuffNode::create_branch(Box::new(left), Box::new(right));
+			fn gen_table(&self) -> Vec<(char,usize,String,usize)>;
+	}
 
-			HuffBTree { root: Some(Box::new(branch))}
+	impl HuffBTreeMethods for HuffBTree {
+
+		fn new (root: Box<HuffNode>) -> Self {
+			HuffBTree {
+				root: Some(root)
+			}
 		}
-
-		fn add_leaf(&mut self, leaf: (char, usize)) {
-			let new_leaf = HuffNode::create_leaf(leaf.0, leaf.1);
-
-			if let Some(old_root) = self.root.take() {
-				let left:Box<HuffNode>;
-				let right:Box<HuffNode>;
-
-				if old_root.get_weight() < new_leaf.get_weight() {
-					left = old_root;
-					right = Box::new(new_leaf);
-				} else {
-					left = Box::new(new_leaf);
-					right = old_root;
-				}
+		fn run(v:&mut HuffVector) -> HuffBTree {
+			while v.frequencies.len() > 1 {
+				let left = v.frequencies.remove(0);
+				let right = v.frequencies.remove(0);
 
 				let new_branch = HuffNode::create_branch(left, right);
-				self.root = Some(Box::new(new_branch));
+				v.insert_node(Box::new(new_branch));
+				
+				/* println!("frequencies:");
+				for f in v.frequencies.iter() {
+					println!("{:?}",f);
+				} */
+			}
+
+			HuffBTree::new(v.frequencies.remove(0))
+		}
+
+		fn gen_table(&self) -> Vec<(char,usize,String,usize)> {
+
+			let mut huffman_table = Vec::new();
+			let mut code = String::new();
+
+			fn traverse(node: &HuffNode, code: &mut String, huffman_table: &mut Vec<(char, usize, String, usize)>) {
+				match node {
+					HuffNode::Branch {  left, right , ..} => {
+						code.push('0');
+						traverse(&left, code, huffman_table);
+						code.pop();
+
+						code.push('1');
+						traverse(&right, code, huffman_table);
+						code.pop();
+					},
+					HuffNode::Leaf { char, weight } => {
+						huffman_table.push((*char, *weight, code.clone(), code.len()));
+					}
+				}
+			}
+			
+			if let Some(root) = &self.root {
+				traverse(root, &mut code, &mut huffman_table);
+			}
+			huffman_table
+		}
+	}
+
+	#[derive(Debug)]
+	pub struct HuffVector {
+		frequencies: Vec<Box<HuffNode>>
+	}
+
+	pub trait HuffVectorMethods {
+		fn new() -> Self;
+		
+		fn insert(&mut self, freq: (char, usize));
+
+		fn insert_node(&mut self, node: Box<HuffNode>);
+	}
+
+impl HuffVectorMethods for HuffVector {
+		fn new() -> Self {
+			HuffVector { 
+				frequencies: Vec::new()
+			}
+		}
+		
+		fn insert(&mut self, freq: (char, usize)) {
+
+			let new_leaf = HuffNode::create_leaf(freq.0, freq.1);
+			let mut new_leaf_index = None;
+
+			for (index,freq) in self.frequencies.iter().enumerate() {
+				if new_leaf.get_weight() < freq.get_weight() {
+					new_leaf_index = Some(index);
+					break;
+				}
+			}
+
+			match new_leaf_index {
+				Some(index) => self.frequencies.insert(index, Box::new(new_leaf)),
+				None => self.frequencies.push(Box::new(new_leaf))
 			}
 		}
 
-		fn is_lower_eq(&mut self, next: usize) -> bool {
-			self.root.as_ref().map_or(false, |root| root.get_weight() <= next)
+		fn insert_node(&mut self, node: Box<HuffNode>){
+			let mut new_leaf_index = None;
+
+			for (index,freq) in self.frequencies.iter().enumerate() {
+				if node.get_weight() < freq.get_weight() {
+					new_leaf_index = Some(index);
+					break;
+				}
+			}
+
+			match new_leaf_index {
+				Some(index) => self.frequencies.insert(index, Box::new(*node)),
+				None => self.frequencies.push(Box::new(*node))
+			}
 		}
+
 	}
+	
 }
 
 pub mod freq_calc {
  use std::{collections::BTreeMap, error::Error};
+	use crate::huff_btree::*;
 
- pub fn calculate_frequencies (file: String ) -> Result<BTreeMap<char, usize>, Box<dyn Error>> {
+ pub fn calculate_frequencies (file: String ) -> Result<BTreeMap<char,usize>, Box<dyn Error>> {
 		let mut frequencies_map: BTreeMap<char, usize> = BTreeMap::new();
 		for character in file.chars() {
 			*frequencies_map.entry(character).or_insert(0) += 1;
 		}
 		Ok(frequencies_map)
  }
+
+	pub fn sort_freq_in_huff_vector(vector: Vec<(char,usize)>) -> HuffVector {
+		let mut huff_vector = HuffVector::new();
+		for tuple in vector {
+			huff_vector.insert(tuple);
+		}
+		huff_vector
+	}
 }
 
 #[cfg(test)]

@@ -1,15 +1,22 @@
 use std::io::Read;
-use rust_huff::cli::{Cli, get_args, open_file};
-use rust_huff::freq_calc::calculate_frequencies;
+use rust_huff::{cli::{Cli, get_args, open_file},freq_calc::{calculate_frequencies, sort_freq_in_huff_vector}, huff_btree::{HuffBTree, HuffBTreeMethods}};
 fn main() {
     let Cli{file} = get_args().unwrap();
 
     let mut reader = open_file(file).unwrap();
     let mut file_str = String::new();
     reader.read_to_string(&mut file_str).unwrap();
+    println!("{}", file_str.len());
+    let sorted_freq: Vec<_> = calculate_frequencies(file_str).unwrap().into_iter().collect();
+    let mut sorted_vect = sort_freq_in_huff_vector(sorted_freq);
 
-    let mut sorted_freq: Vec<_> = calculate_frequencies(file_str).unwrap().into_iter().collect();
-    sorted_freq.sort_by(|a, b| a.1.cmp(&b.1));
+    let huff_tree = HuffBTree::run(&mut sorted_vect);
 
-    println!("{:?}", sorted_freq)
+    let mut table = huff_tree.gen_table();
+    table.sort_by(|a, b| b.1.cmp(&a.1));
+    println!("char\t|\tfreq\t|\tcode\t\t\t\t|\tbits");
+    for (char, freq, code, bits) in table {
+        println!("{}\t\t|\t{}\t|\t{}\t\t\t\t|\t{}\n", char.escape_unicode(), freq, code, bits);
+    }
+
 }
