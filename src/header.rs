@@ -2,22 +2,23 @@ use std::collections::BTreeMap;
 
 use crate::huff::HuffCode;
 
-pub fn get_headers(table: BTreeMap<char, HuffCode>) -> Vec<(char, String, usize)> {
+pub fn get_headers(table: BTreeMap<char, HuffCode>) -> Vec<(char, Vec<bool>, usize)> {
  let mut headers = Vec::new();
 
  for (_, code) in table {
   let parsed_code = get_header(code);
   headers.push(parsed_code);
  }
- //println!("{:?}", headers);
+/*  println!("{:?}", headers);
+ println!("{:?}", headers.len()); */
  headers
 }
 
-pub fn get_header(code: HuffCode) -> (char, String, usize) {
+pub fn get_header(code: HuffCode) -> (char, Vec<bool>, usize) {
  let (char, code_bool, length) = code.get_header_data();
- let code_string = bool_vec_to_string(code_bool);
+ //let code_string = bool_vec_to_string(code_bool);
 
- let header = (char, code_string, length);
+ let header = (char, code_bool, length);
  //println!("{:?}", header);
  header
 }

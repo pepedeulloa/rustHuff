@@ -1,7 +1,6 @@
 use core::fmt;
 use std::collections::BTreeMap;
 
-
 #[derive(Debug)]
 pub enum HuffNode{
  Branch {
@@ -45,7 +44,7 @@ impl HuffBTree {
   }
  }
 
- pub fn run(v:&mut HuffVector) -> HuffBTree {
+ pub fn gen_tree(v:&mut HuffVector) -> HuffBTree {
   while v.frequencies.len() > 1 {
    let left = v.frequencies.remove(0);
    let right = v.frequencies.remove(0);
@@ -97,12 +96,23 @@ impl HuffVector {
    frequencies: Vec::new()
   }
  }
+
+ pub fn gen_huff_vector(frequencies: Vec<(char, usize)>) -> Self {
+  let mut huff_vector = HuffVector::new();
+
+  for freq in frequencies {
+   huff_vector.insert(freq)
+  }
+
+  huff_vector
+ }
  
  pub fn insert(&mut self, freq: (char, usize)) {
 
   let new_leaf = HuffNode::create_leaf(freq.0, freq.1);
   let mut new_leaf_index = None;
 
+  // Find insertion position
   for (index,freq) in self.frequencies.iter().enumerate() {
    if new_leaf.get_weight() < freq.get_weight() {
     new_leaf_index = Some(index);
@@ -110,6 +120,7 @@ impl HuffVector {
    }
   }
 
+  // Insert new element keeping the vector sorted by weight
   match new_leaf_index {
    Some(index) => self.frequencies.insert(index, Box::new(new_leaf)),
    None => self.frequencies.push(Box::new(new_leaf))
@@ -157,7 +168,6 @@ impl HuffCode {
  pub fn get_code(&self) -> Vec<bool> {
   self.code.clone()
  }
-
 }
 
 impl fmt::Display for HuffCode {

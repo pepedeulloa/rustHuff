@@ -29,13 +29,14 @@ fn main() {
 
 	reader.read_to_string(&mut file_str).unwrap();
 	let end_read_time = Instant::now();
+
 	// Calculate the frequencies
 	let start_gen_huffcode_time = Instant::now();
-	let sorted_freq: Vec<_> = calculate_frequencies(file_str.clone()).unwrap().into_iter().collect();
-	let mut sorted_vect = sort_freq_in_huff_vector(sorted_freq);
+	let frequencies: Vec<_> = calculate_frequencies(file_str.clone()).unwrap();
+	let mut huff_vector = HuffVector::gen_huff_vector(frequencies);
 
 	// Create the Huffman tree with the frequencies.
-	let huff_tree = HuffBTree::run(&mut sorted_vect);
+	let huff_tree = HuffBTree::gen_tree(&mut huff_vector);
 
 	// Genenate the table with the codes.
 	let table = huff_tree.gen_table();
@@ -43,7 +44,7 @@ fn main() {
 
 	// Generate the data to write
 	let start_encoding_time = Instant::now();
-	let header: Vec<(char, String, usize)> = get_headers(table.clone());
+	let header: Vec<(char, Vec<bool>, usize)> = get_headers(table.clone());
 	let encoded_data = encode(&table, file_str);
 	let end_encoding_time = Instant::now();
 	
