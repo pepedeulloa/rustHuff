@@ -161,8 +161,8 @@ impl HuffCode {
   }
  }
 
- pub fn get_header_data(&self) -> (char, Vec<bool>, usize) {
-  (self.char, self.code.clone(), self.length)
+ pub fn get_header_data(&self) -> (char, usize ,Vec<bool>) {
+  (self.char, self.length, self.code.clone())
  }
 
  pub fn get_code(&self) -> Vec<bool> {

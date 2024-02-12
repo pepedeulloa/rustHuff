@@ -26,20 +26,19 @@ pub fn open_file (filename: PathBuf) -> Result<BufReader<File>,Box<dyn Error>> {
  Ok(reader)
 }
 
-pub fn write_file (output: PathBuf, header: Vec<(char, Vec<bool>, usize)>, encoded_data: Vec<u8>) -> std::io::Result<()> {
+pub fn write_file (output: PathBuf, header: (usize, Vec<(char, usize, Vec<bool>)>), encoded_data: Vec<u8>) -> std::io::Result<()> {
  let mut file = File::create(output)?;
+ println!("{}", header.0 as u8);
+ file.write_all(&[header.0 as u8])?;
 
- file.write_all(&['\n' as u8])?;
-
- for (char, code, length) in header {
+ for (char, length, code) in header.1 {
   file.write_all(&[char as u8])?;
+  file.write_all(&[length as u8])?;
   for item in code {
    file.write_all(&[item as u8])?;
   }
-  file.write_all(&[length as u8])?;
  }
 
- 
  file.write_all(&encoded_data)
 
 }

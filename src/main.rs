@@ -14,6 +14,7 @@ mod encoder;
 use crate::encoder::*;
 
 use std::io::Read;
+use std::io::Seek;
 use std::time::Instant;
 
 fn main() {
@@ -44,13 +45,13 @@ fn main() {
 
 	// Generate the data to write
 	let start_encoding_time = Instant::now();
-	let header: Vec<(char, Vec<bool>, usize)> = get_headers(table.clone());
+	let header: (usize, Vec<(char, usize, Vec<bool>)>) = get_headers(table.clone());
 	let encoded_data = encode(&table, file_str);
 	let end_encoding_time = Instant::now();
 	
 	// Write the file
 	let start_write_time = Instant::now();
-	write_file(output, header, encoded_data).unwrap();
+	write_file(output.clone(), header, encoded_data).unwrap();
 	let end_write_time = Instant::now();
 
 	// Benchmarking
@@ -62,10 +63,14 @@ fn main() {
 	let encoding_duration = end_encoding_time - start_encoding_time;
 	let write_duration = end_write_time - start_write_time;
 
-
 	println!("Tempo de lectura: {}s {:3}ms {:3}ns", read_duration.as_secs(), read_duration.subsec_millis(), read_duration.subsec_nanos());
 	println!("Tempo de xeneración do código: {}s {:3}ms {:3}ns", gen_huffcode_duration.as_secs(), gen_huffcode_duration.subsec_millis(), gen_huffcode_duration.subsec_nanos());
 	println!("Tempo de codificacion: {}s {:3}ms {:3}ns", encoding_duration.as_secs(), encoding_duration.subsec_millis(), encoding_duration.subsec_nanos());
 	println!("Tempo de escritura: {}s {:3}ms {:3}ns", write_duration.as_secs(), write_duration.subsec_millis(), write_duration.subsec_nanos());
 	println!("Tempo transcorrido: {}s {:3}ms {:3}ns", duration.as_secs(), duration.subsec_millis(), duration.subsec_nanos());
+
+	let encoded_reader = open_file(output).unwrap();
+
+	parse_headers(encoded_reader);
 }
+
