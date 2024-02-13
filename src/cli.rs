@@ -17,6 +17,7 @@ pub fn get_args () -> Result< Cli , Box<dyn Error>>{
 
  Ok(cli)
 }
+
 pub fn open_file (filename: PathBuf) -> Result<BufReader<File>,Box<dyn Error>> {
  let file = File::open(filename)?;
  let reader: BufReader<File>;
@@ -26,13 +27,12 @@ pub fn open_file (filename: PathBuf) -> Result<BufReader<File>,Box<dyn Error>> {
  Ok(reader)
 }
 
-pub fn write_file (output: PathBuf, header: (usize, Vec<(char, usize, Vec<bool>)>), encoded_data: Vec<u8>) -> std::io::Result<()> {
+pub fn write_file (output: PathBuf, header: (usize, Vec<(Vec<u8>, usize, Vec<bool>)>), encoded_data: Vec<u8>) -> std::io::Result<()> {
  let mut file = File::create(output)?;
- println!("{}", header.0 as u8);
  file.write_all(&[header.0 as u8])?;
 
  for (char, length, code) in header.1 {
-  file.write_all(&[char as u8])?;
+  file.write_all(&char)?;
   file.write_all(&[length as u8])?;
   for item in code {
    file.write_all(&[item as u8])?;

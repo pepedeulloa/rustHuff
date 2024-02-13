@@ -14,7 +14,7 @@ mod encoder;
 use crate::encoder::*;
 
 use std::io::Read;
-use std::io::Seek;
+
 use std::time::Instant;
 
 fn main() {
@@ -45,7 +45,7 @@ fn main() {
 
 	// Generate the data to write
 	let start_encoding_time = Instant::now();
-	let header: (usize, Vec<(char, usize, Vec<bool>)>) = get_headers(table.clone());
+	let header: (usize, Vec<(Vec<u8>, usize, Vec<bool>)>) = get_headers(table.clone());
 	let encoded_data = encode(&table, file_str);
 	let end_encoding_time = Instant::now();
 	

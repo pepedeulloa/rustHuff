@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, fs::File, io::{BufReader, Read}};
 
 use crate::huff::HuffCode;
 
-pub fn get_headers(table: BTreeMap<char, HuffCode>) -> (usize,Vec<(char, usize, Vec<bool>)>) {
+pub fn get_headers(table: BTreeMap<char, HuffCode>) -> (usize,Vec<(Vec<u8>, usize, Vec<bool>)>) {
  let mut headers = Vec::new();
 
  for (_, code) in table {
@@ -14,11 +14,18 @@ pub fn get_headers(table: BTreeMap<char, HuffCode>) -> (usize,Vec<(char, usize, 
  (headers.len(),headers)
 }
 
-pub fn get_header(code: HuffCode) -> (char, usize, Vec<bool>) {
+pub fn get_header(code: HuffCode) -> (Vec<u8>, usize, Vec<bool>) {
  let (char, length, code_bool) = code.get_header_data();
- //let code_string = bool_vec_to_string(code_bool);
 
- let header = (char, length, code_bool);
+ let mut char_u8 = Vec::with_capacity(4);
+
+ let char_u32 = char as u32;
+
+ for byte in char_u32.to_be_bytes() {
+  char_u8.push(byte)
+ }
+
+ let header = (char_u8, length, code_bool);
  println!("{:?}", header);
  header
 }
@@ -27,12 +34,11 @@ pub fn parse_headers(mut reader: BufReader<File>) /* -> (usize, Vec<(char, Vec<b
  let mut table: (usize, Vec<(char, usize, Vec<bool>)>)  = (0, Vec::new());
  let mut u8_vector: Vec<u8> = Vec::new();
  let mut header_length = [0u8; 1];
- let mut char = [0u8;1];
- let mut code_length = [0u8;1];
- let mut code_element = [0u8;1];
- let mut result; 
+ let mut char_buff = [0u8; 4];
+ let mut code_length = [0u8; 1];
+ let mut code_element = [0u8; 1];
 
- result = reader.read_exact(&mut header_length);
+ let _ = reader.read_exact(&mut header_length);
 
  println!("elementos na cabeceira: {}",header_length[0]);
 
@@ -42,17 +48,18 @@ pub fn parse_headers(mut reader: BufReader<File>) /* -> (usize, Vec<(char, Vec<b
 
  while count > 0 {
   u8_vector.clear();
-  result = reader.read_exact(&mut char);
-  result = reader.read_exact(&mut code_length);
+  let _ = reader.read_exact(&mut char_buff);
+  let _ = reader.read_exact(&mut code_length);
 
   for _ in 0..code_length[0] {
-   result = reader.read_exact(&mut code_element);
+   let _ = reader.read_exact(&mut code_element);
    u8_vector.push(code_element[0]);
   }
 
   let code_bool_vector = parse_code(u8_vector.clone());
 
-  table.1.push((char[0] as char, code_length[0] as usize, code_bool_vector));
+  
+  table.1.push((parse_char(char_buff) , code_length[0] as usize, code_bool_vector));
 
   count -= 1;
  }
@@ -78,3 +85,10 @@ pub fn parse_code(code_to_parse: Vec<u8>) -> Vec<bool> {
  code
 }
 
+pub fn parse_char(vec: [u8;4]) -> char {
+
+ let char_u32: u32 = u32::from_be_bytes(vec).try_into().unwrap();
+
+ std::char::from_u32(char_u32).unwrap()
+
+}
