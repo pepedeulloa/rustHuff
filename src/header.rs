@@ -26,11 +26,11 @@ pub fn get_header(code: HuffCode) -> (Vec<u8>, usize, Vec<bool>) {
  }
 
  let header = (char_u8, length, code_bool);
- println!("{:?}", header);
+ println!("{:?}", (char, length));
  header
 }
 
-pub fn parse_headers(mut reader: BufReader<File>) /* -> (usize, Vec<(char, Vec<bool>, usize)>) */ {
+pub fn parse_headers(reader: &mut BufReader<File>) -> (usize, Vec<(char, usize, Vec<bool>)>) {
  let mut table: (usize, Vec<(char, usize, Vec<bool>)>)  = (0, Vec::new());
  let mut u8_vector: Vec<u8> = Vec::new();
  let mut header_length = [0u8; 1];
@@ -39,8 +39,6 @@ pub fn parse_headers(mut reader: BufReader<File>) /* -> (usize, Vec<(char, Vec<b
  let mut code_element = [0u8; 1];
 
  let _ = reader.read_exact(&mut header_length);
-
- println!("elementos na cabeceira: {}",header_length[0]);
 
  table.0 = header_length[0] as usize;
 
@@ -64,9 +62,9 @@ pub fn parse_headers(mut reader: BufReader<File>) /* -> (usize, Vec<(char, Vec<b
   count -= 1;
  }
 
- for item in table.1 {
-  println!("{:?}", item)
- }
+ println!("{:?}", table.1);
+
+ table
 }
 
 pub fn parse_code(code_to_parse: Vec<u8>) -> Vec<bool> {

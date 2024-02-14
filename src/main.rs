@@ -13,6 +13,9 @@ use crate::header::*;
 mod encoder; 
 use crate::encoder::*;
 
+mod decoder;
+use crate::decoder::*;
+
 use std::io::Read;
 
 use std::time::Instant;
@@ -69,8 +72,11 @@ fn main() {
 	println!("Tempo de escritura: {}s {:3}ms {:3}ns", write_duration.as_secs(), write_duration.subsec_millis(), write_duration.subsec_nanos());
 	println!("Tempo transcorrido: {}s {:3}ms {:3}ns", duration.as_secs(), duration.subsec_millis(), duration.subsec_nanos());
 
-	let encoded_reader = open_file(output).unwrap();
+	let mut encoded_reader = open_file(output).unwrap();
 
-	parse_headers(encoded_reader);
+	parse_headers(&mut encoded_reader);
+
+	let decoded_text = decode(&mut encoded_reader);
+
 }
 
