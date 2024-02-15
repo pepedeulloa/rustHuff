@@ -74,9 +74,11 @@ fn main() {
 
 	let mut encoded_reader = open_file(output).unwrap();
 
-	parse_headers(&mut encoded_reader);
+	let table = parse_headers(&mut encoded_reader).1;
 
-	let decoded_text = decode(&mut encoded_reader);
+	let decoded_text = decode(&mut encoded_reader, table);
+
+	println!("{}", decoded_text)
 
 }
 
