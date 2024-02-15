@@ -13,11 +13,9 @@ pub fn decode(reader: &mut BufReader<File>, table: Vec<(char, usize, Vec<bool>)>
  for byte in text.as_bytes() {
   for i in 0..7 {
    if decoded {
-    println!("novo char");
    code = Vec::new();
    decoded = false;
   }
-   println!("{i}");
    let mask = 1 << i;
    let to_bool = (mask & byte) > 0;
    code.push(to_bool);
@@ -25,12 +23,9 @@ pub fn decode(reader: &mut BufReader<File>, table: Vec<(char, usize, Vec<bool>)>
    
    match is_code {
     None => {
-     println!("code: {:?}", code);
      continue
     },
     Some((char, _, _)) => {
-     println!("code: {:?}", code);
-     println!("is code for {}", char);
      decoded_text.push(*char);
      decoded = true;
     },

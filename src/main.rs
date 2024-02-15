@@ -72,13 +72,19 @@ fn main() {
 	println!("Tempo de escritura: {}s {:3}ms {:3}ns", write_duration.as_secs(), write_duration.subsec_millis(), write_duration.subsec_nanos());
 	println!("Tempo transcorrido: {}s {:3}ms {:3}ns", duration.as_secs(), duration.subsec_millis(), duration.subsec_nanos());
 
+
 	let mut encoded_reader = open_file(output).unwrap();
 
+	let start_decode_time = Instant::now();
 	let table = parse_headers(&mut encoded_reader).1;
 
 	let decoded_text = decode(&mut encoded_reader, table);
 
-	println!("{}", decoded_text)
+	let end_decode_time = Instant::now();
+
+	let decode_time_duration = end_decode_time - start_decode_time;
+
+	println!("Tempo de decodificación transcorrido: {}s {:3}ms {:3}ns", decode_time_duration.as_secs(), decode_time_duration.subsec_millis(), decode_time_duration.subsec_nanos());
 
 }
 
