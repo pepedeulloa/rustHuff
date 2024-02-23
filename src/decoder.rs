@@ -1,6 +1,6 @@
 use std::{fs::File, io::{BufReader, Read}};
 
-pub fn decode(reader: &mut BufReader<File>, table: Vec<(char, usize, Vec<bool>)>) -> String {
+pub fn decode_file(reader: &mut BufReader<File>, table: Vec<(char, usize, Vec<bool>)>) -> String {
  let mut text = String::new();
  let mut decoded_text = String::new();
  let mut code = Vec::new();
@@ -8,7 +8,7 @@ pub fn decode(reader: &mut BufReader<File>, table: Vec<(char, usize, Vec<bool>)>
 
  let _ = reader.read_to_string(&mut text);
 
- println!("Decoding...");
+ println!("Decodificando...");
 
  for byte in text.as_bytes() {
   for i in 0..7 {
@@ -20,7 +20,7 @@ pub fn decode(reader: &mut BufReader<File>, table: Vec<(char, usize, Vec<bool>)>
    let to_bool = (mask & byte) > 0;
    code.push(to_bool);
    let is_code = table.iter().find(|element| element.2 == code);
-   
+
    match is_code {
     None => {
      continue
@@ -33,6 +33,7 @@ pub fn decode(reader: &mut BufReader<File>, table: Vec<(char, usize, Vec<bool>)>
    
   }
  }
+ println!("Fin da decodificación...");
  decoded_text
 }
 

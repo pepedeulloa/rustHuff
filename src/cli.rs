@@ -10,6 +10,9 @@ pub struct Cli {
 
  #[arg(id="OUTPUT")]
  pub output: PathBuf,
+
+ #[arg(short='d', long="decode", id="Decode")]
+ pub decode: bool,
 }
 
 pub fn get_args () -> Result< Cli , Box<dyn Error>>{
@@ -27,7 +30,7 @@ pub fn open_file (filename: PathBuf) -> Result<BufReader<File>,Box<dyn Error>> {
  Ok(reader)
 }
 
-pub fn write_file (output: PathBuf, header: (usize, Vec<(Vec<u8>, usize, Vec<bool>)>), encoded_data: Vec<u8>) -> std::io::Result<()> {
+pub fn write_encoded_file (output: PathBuf, header: (usize, Vec<(Vec<u8>, usize, Vec<bool>)>), encoded_data: Vec<u8>) -> std::io::Result<()> {
  let mut file = File::create(output)?;
  file.write_all(&[header.0 as u8])?;
 
@@ -38,8 +41,13 @@ pub fn write_file (output: PathBuf, header: (usize, Vec<(Vec<u8>, usize, Vec<boo
    file.write_all(&[item as u8])?;
   }
  }
-
  file.write_all(&encoded_data)
 
 }
 
+pub fn write_decoded_file (output: PathBuf, decoded_data: String) -> std::io::Result<()> {
+ let mut file = File::create(output)?;
+
+ file.write_all(&decoded_data.as_bytes())
+
+}

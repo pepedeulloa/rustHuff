@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 
 use crate::HuffCode;
-//use crate::header::bool_vec_to_string;
 
 pub fn encode(table: &BTreeMap<char,HuffCode> ,data: String) -> Vec<u8> {
  let mut encoded_data = Vec::new();

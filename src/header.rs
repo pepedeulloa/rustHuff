@@ -10,7 +10,6 @@ pub fn get_headers(table: BTreeMap<char, HuffCode>) -> (usize,Vec<(Vec<u8>, usiz
   headers.push(parsed_code);
  }
 
- println!("elementos na cabeceira: {:?}", headers.len());
  (headers.len(),headers)
 }
 
@@ -26,7 +25,6 @@ pub fn get_header(code: HuffCode) -> (Vec<u8>, usize, Vec<bool>) {
  }
 
  let header = (char_u8, length, code_bool);
- println!("{:?}", (char, length));
  header
 }
 
@@ -56,13 +54,10 @@ pub fn parse_headers(reader: &mut BufReader<File>) -> (usize, Vec<(char, usize, 
 
   let code_bool_vector = parse_code(u8_vector.clone());
 
-  
   table.1.push((parse_char(char_buff) , code_length[0] as usize, code_bool_vector));
 
   count -= 1;
  }
-
- println!("{:?}", table.1);
 
  table
 }
@@ -79,7 +74,6 @@ pub fn parse_code(code_to_parse: Vec<u8>) -> Vec<bool> {
    println!("error, valor: {}", byte);
   }
  }
-
  code
 }
 

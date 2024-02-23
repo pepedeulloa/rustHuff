@@ -103,6 +103,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
+name = "num_cpu"
+version = "1.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c56891d2972c8e6ac2cff4985042313e11ecb2dbbae06d60195116ac20fd7cf"
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.78"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -125,6 +131,7 @@ name = "rust_huff"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "num_cpu",
 ]
 
 [[package]]
