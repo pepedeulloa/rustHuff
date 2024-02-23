@@ -24,7 +24,7 @@ fn main() {
 
 	if !decode {
 		// Read the file and parse to a string 
-	let mut reader = open_file(file).unwrap();
+	let mut reader = open_file(&file).unwrap();
 	let mut file_str = String::new();
 
 	reader.read_to_string(&mut file_str).unwrap();
@@ -40,20 +40,21 @@ fn main() {
 	let table = huff_tree.gen_table();
 
 	// Generate the data to write
-	let header: (usize, Vec<(Vec<u8>, usize, Vec<bool>)>) = get_headers(table.clone());
+	let header: (usize, String, Vec<(Vec<u8>, usize, Vec<bool>)>) = get_headers(file.extension().unwrap().to_str().unwrap() ,table.clone());
 	let encoded_data = encode(&table, file_str);
 	
 	// Write the file
-	write_encoded_file(output.clone(), header, encoded_data).unwrap();
+	write_encoded_file(&output.unwrap(), header, encoded_data).unwrap();
 
 	} else {
-		let mut encoded_reader = open_file(file).unwrap();
+		let mut encoded_reader = open_file(&file).unwrap();
 
-		let table = parse_headers(&mut encoded_reader).1;
+		let (_, extension, table) = parse_headers(&mut encoded_reader);
 
+		println!("{} {:?}", extension, table);
+		
 		let decoded_text = decode_file(&mut encoded_reader, table);
 
-		write_decoded_file(output, decoded_text).unwrap();
+		write_decoded_file(&output.unwrap().with_extension(extension), decoded_text).unwrap();
 	}
 }
-

@@ -103,10 +103,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
-name = "num_cpu"
-version = "1.14.0"
+name = "hermit-abi"
+version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c56891d2972c8e6ac2cff4985042313e11ecb2dbbae06d60195116ac20fd7cf"
+checksum = "bd5256b483761cd23699d0da46cc6fd2ee3be420bbe6d020ae4a091e70b7e9fd"
+
+[[package]]
+name = "libc"
+version = "0.2.153"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c198f91728a82281a64e1f4f9eeb25d82cb32a5de251c6bd1b5154d63a8e7bd"
+
+[[package]]
+name = "num_cpus"
+version = "1.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4161fcb6d602d4d2081af7c3a45852d875a03dd337a6bfdd6e06407b61342a43"
+dependencies = [
+ "hermit-abi",
+ "libc",
+]
 
 [[package]]
 name = "proc-macro2"
@@ -131,7 +147,7 @@ name = "rust_huff"
 version = "0.1.0"
 dependencies = [
  "clap",
- "num_cpu",
+ "num_cpus",
 ]
 
 [[package]]
