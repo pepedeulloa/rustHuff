@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, fs::File, io::{BufReader, Read}};
 
 use crate::huff::HuffCode;
 
-pub fn get_headers(file_extension: &str ,table: BTreeMap<char, HuffCode>) -> (usize, String, Vec<(Vec<u8>, usize, Vec<bool>)>) {
+pub fn get_headers(file_extension: &str ,table: &BTreeMap<char, HuffCode>) -> (usize, String, Vec<(Vec<u8>, usize, Vec<bool>)>) {
  let mut headers = Vec::new();
 
  for (_, code) in table {
@@ -13,7 +13,7 @@ pub fn get_headers(file_extension: &str ,table: BTreeMap<char, HuffCode>) -> (us
  (headers.len(), file_extension.to_string(), headers)
 }
 
-pub fn get_header(code: HuffCode) -> (Vec<u8>, usize, Vec<bool>) {
+pub fn get_header(code: &HuffCode) -> (Vec<u8>, usize, Vec<bool>) {
  let (char, length, code_bool) = code.get_header_data();
 
  let mut char_u8 = Vec::with_capacity(4);

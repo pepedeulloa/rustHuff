@@ -17,6 +17,8 @@ mod decoder;
 use crate::decoder::*;
 
 use std::io::Read;
+use std::sync::Arc;
+use std::time::Instant;
 
 fn main() {
 	// Parsing cli args
@@ -37,21 +39,30 @@ fn main() {
 	let huff_tree = HuffBTree::gen_tree(&mut huff_vector);
 
 	// Genenate the table with the codes.
-	let table = huff_tree.gen_table();
+	let table = Arc::new(huff_tree.gen_table());
 
 	// Generate the data to write
-	let header: (usize, String, Vec<(Vec<u8>, usize, Vec<bool>)>) = get_headers(file.extension().unwrap().to_str().unwrap() ,table.clone());
-	let encoded_data = encode(&table, file_str);
+	let header: (usize, String, Vec<(Vec<u8>, usize, Vec<bool>)>) = get_headers(file.extension().unwrap().to_str().unwrap() ,table.as_ref());
+	let start_encoding = Instant::now();
+	let encoded_data = encode_mt(table, file_str);
+	let end_encoding = Instant::now();
+	let encoding_time = end_encoding - start_encoding;
+	println!("Tempo de codificación: {}ms", encoding_time.as_millis());
 	
 	// Write the file
+	let start_write = Instant::now();
 	write_encoded_file(&output.unwrap(), header, encoded_data).unwrap();
+	let end_write = Instant::now();
+	let writing_time = end_write - start_write;
+	println!("Tempo de escritura: {}ms", writing_time.as_millis());
+
 
 	} else {
 		let mut encoded_reader = open_file(&file).unwrap();
 
 		let (_, extension, table) = parse_headers(&mut encoded_reader);
 
-		println!("{} {:?}", extension, table);
+		//println!("{} {:?}", extension, table);
 		
 		let decoded_text = decode_file(&mut encoded_reader, table);
 

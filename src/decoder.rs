@@ -1,4 +1,11 @@
 use std::{fs::File, io::{BufReader, Read}};
+//use num_cpus;
+
+/* pub fn decode_file_mt(reader: &mut BufReader<File>, table: Vec<(char, usize, Vec<bool>)>) {
+ let chunks = num_cpus::get();
+
+
+} */
 
 pub fn decode_file(reader: &mut BufReader<File>, table: Vec<(char, usize, Vec<bool>)>) -> String {
  let mut text = String::new();
