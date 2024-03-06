@@ -32,9 +32,9 @@ fn main() {
 	reader.read_to_string(&mut file_str).unwrap();
 
 	// Calculate the frequencies
-	let frequencies: Vec<_> = calculate_frequencies(file_str.clone()).unwrap();
+	let frequencies: Vec<_> = calculate_frequencies(&file_str).unwrap();
 	let mut huff_vector = HuffVector::gen_huff_vector(frequencies);
-
+	
 	// Create the Huffman tree with the frequencies.
 	let huff_tree = HuffBTree::gen_tree(&mut huff_vector);
 

@@ -13,7 +13,7 @@ pub fn encode_mt (table: Arc<BTreeMap<char, HuffCode>>, data: String) -> Vec<u8>
  
  recursive_chunking(&mut data_chunks, &data, chunk_size);
  
- println!("chunk {}", data_chunks[1]);
+ //println!("chunk {}", data_chunks[1]);
  
  let mut handles = Vec::new();
  
@@ -34,7 +34,7 @@ pub fn encode_mt (table: Arc<BTreeMap<char, HuffCode>>, data: String) -> Vec<u8>
   encoded_data.append(&mut result.1);
  }
 
- println!("len: {}",encoded_data.len());
+ //println!("len: {}",encoded_data.len());
 
  encoded_data
 
@@ -53,30 +53,36 @@ fn recursive_chunking(data_chunks: &mut Vec<String>, data: &str, chunk_size: usi
 pub fn encode(table: &BTreeMap<char, HuffCode>, data: String, thread_id: u8) -> (u8, Vec<u8>) {
  let mut encoded_data = Vec::new();
  
- let mut byte: u8 = 0;
+ let mut encoder_buffer: u8 = 0;
  let mut index: u8 = 0;
 
- println!("Codificando...");
+ println!("#{} Codificando...",thread_id);
  for char in data.chars() {
   let code = table.get(&char).unwrap().get_code();
 
   for bool in code {
-   if index == 7 {
-
-    encoded_data.push(byte);
-
-    byte = 0;
+   if index == 8 {
+    println!("push -> {:08b}",encoder_buffer);
+    encoded_data.push(encoder_buffer);
+    encoder_buffer = 0;
     index = 0;
    }
+   println!("#{} index: {} mask:{:08b}, byte: {:08b}, value: {}", thread_id, index, 1 << index, encoder_buffer, bool);
    if bool {
-    byte |= 1 << index;
+    encoder_buffer |= 1 << index;
     index += 1;
    } else {
-    byte |= 0 << index;
+    encoder_buffer |= 0 << index;
     index += 1;
    }
   }
  }
+ 
+ if index != 8 {
+  encoded_data.push(encoder_buffer);
+ }
+
+ println!("\t\tultimo byte de #{}: {:08b} == {:08b}. Remata no indice: {}", thread_id, encoder_buffer, encoded_data.last().unwrap(), index);
  println!("Fin codificacion");
  println!("\nCHUNK: {}", thread_id);
  println!("\nTamaño datos: {} bytes", data.len());
