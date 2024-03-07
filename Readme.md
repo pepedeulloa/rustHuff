@@ -23,8 +23,9 @@ This program has been developed using Rust version 1.74.0. Command-line argument
 
 ## Compilation
 
+Example of compilation, executable file will be found in the target/release directory.
+
 ```bash
-# Example of compilation, executable file will be found in the target/release directory.
 cargo build --release && cd target/release
 ```
 
@@ -35,13 +36,11 @@ To use rust_huff, you can compile the program and run it from the command line.
 Encoding:
 
 ```bash
-# Example usage for encoding a file
 .rust_huff -d file1.huff file2.txt
 ```
 
 Decoding: 
 
 ```bash
-# Example usage for encoding a file
 ./rust_huff -d file1.huff file2.txt
 ```
