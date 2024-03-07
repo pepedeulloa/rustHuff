@@ -56,16 +56,25 @@ fn main() {
 	let writing_time = end_write - start_write;
 	println!("Tempo de escritura: {}ms", writing_time.as_millis());
 
-
 	} else {
 		let mut encoded_reader = open_file(&file).unwrap();
 
 		let (_, extension, table) = parse_headers(&mut encoded_reader);
 
-		//println!("{} {:?}", extension, table);
+		let table = Arc::new(table);
 		
+		let start_decoding_time = Instant::now();
 		let decoded_text = decode_file(&mut encoded_reader, table);
+		let end_decoding_time = Instant::now();
+		let decoding_time = end_decoding_time - start_decoding_time;
 
-		write_decoded_file(&output.unwrap().with_extension(extension), decoded_text).unwrap();
+		println!("Tempo de decodificación: {}ms", decoding_time.as_millis());
+
+		let start_write = Instant::now();
+		write_decoded_file(&output.unwrap().with_extension(extension), decoded_text).unwrap();		
+		let end_write = Instant::now();
+		let writing_time = end_write - start_write;
+		println!("Tempo de escritura: {}ms", writing_time.as_millis());
+	
 	}
 }

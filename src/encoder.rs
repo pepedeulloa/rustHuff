@@ -13,11 +13,9 @@ pub fn encode_mt (table: Arc<BTreeMap<char, HuffCode>>, data: String) -> Vec<u8>
  
  recursive_chunking(&mut data_chunks, &data, chunk_size);
  
- //println!("chunk {}", data_chunks[1]);
- 
  let mut handles = Vec::new();
- 
  let mut thread_id = 0;
+
  for chunk in data_chunks {
   let table_shared_clone = Arc::clone(&table);
   let handle = thread::spawn(move||{
@@ -43,8 +41,6 @@ pub fn encode_mt (table: Arc<BTreeMap<char, HuffCode>>, data: String) -> Vec<u8>
   encoded_data.append(&mut result.3);
  }
 
- // println!("encoded data: {:?}",encoded_data);
-
  encoded_data
 
 }
@@ -64,19 +60,15 @@ pub fn encode(table: &BTreeMap<char, HuffCode>, data: String, thread_id: u8) -> 
  
  let mut encoder_buffer: u8 = 0;
  let mut index: u8 = 0;
- println!("#{thread_id} chunk: {data}");
- //println!("#{} Codificando...",thread_id);
  for char in data.chars() {
   let code = table.get(&char).unwrap().get_code();
 
   for bool in code {
    if index == 8 {
-    //println!("push -> {:08b}",encoder_buffer);
     encoded_data.push(encoder_buffer);
     encoder_buffer = 0;
     index = 0;
    }
-   //println!("#{} index: {} mask:{:08b}, byte: {:08b}, value: {}", thread_id, index, 1 << index, encoder_buffer, bool);
    if bool {
     encoder_buffer |= 1 << index;
     index += 1;
@@ -86,17 +78,8 @@ pub fn encode(table: &BTreeMap<char, HuffCode>, data: String, thread_id: u8) -> 
    }
   }
  }
- 
- if index != 8 {
-  encoded_data.push(encoder_buffer);
- }
 
- //println!("\t\tultimo byte de #{}: {:08b} == {:08b}. Remata no indice: {}", thread_id, encoder_buffer, encoded_data.last().unwrap(), index);
- println!("Fin codificacion");
- println!("\nCHUNK: {}, Tamaño datos comprimidos: {:?} bytes", thread_id, encoded_data.len());
- 
- //et data_compression_porcentage: f32 = (1.0 - (encoded_data.len() as f32 / data.len() as f32)) * 100.0; 
- //println!("% de compresion: {:.2}%\n", data_compression_porcentage);
+ encoded_data.push(encoder_buffer);
 
  let len = encoded_data.len().to_be_bytes().into_iter().collect();
 

@@ -1,4 +1,4 @@
-use std::{error::Error, fs::File, io::{BufReader, Read}};
+use std::{error::Error, fs::File, io::{BufReader, Read}, sync::Arc, thread, time::Instant};
 
 //use num_cpus::get;
 
@@ -8,24 +8,31 @@ use std::{error::Error, fs::File, io::{BufReader, Read}};
 
 } */
 
-pub fn decode_file(reader: &mut BufReader<File>, table: Vec<(char, usize, Vec<bool>)>) -> String {
+pub fn decode_file(reader: &mut BufReader<File>, table: Arc<Vec<(char, usize, Vec<bool>)>>) -> String {
  let mut data_chunks = Vec::new();
  let mut decoded_text = String::new();
 
+ let start_chunking_time = Instant::now();
  let _ = get_chunks(&mut data_chunks, reader);
+ let end_chunking_time = Instant::now();
+ let chunking_time = end_chunking_time - start_chunking_time;
+ println!("chunking_time: {}ms", chunking_time.as_millis());
 
- println!("Decodificando");
-
- println!("{:?}", table);
+ let mut handles = Vec::new();
 
  for mut chunk in data_chunks {
-  println!("NOVO CHUNK");
-  
-  let chunk_string = decode_chunk(chunk.remove(0), &mut chunk, &table);
-  decoded_text.push_str( chunk_string.as_str());
+  let table_shared_clone = Arc::clone(&table);
+  let handle = thread::spawn(move||{
+   decode_chunk(chunk.remove(0), &mut chunk, &table_shared_clone)
+  });
+  handles.push(handle);
  }
  
- println!("Fin da decodificación...");
+ for t in handles {
+  let result = t.join().unwrap();
+  decoded_text.push_str(result.as_str())
+ }
+
  decoded_text
 }
 
@@ -34,9 +41,8 @@ fn decode_chunk(padding_bits: u8, chunk: &mut Vec<u8>, table: &Vec<(char, usize,
  let mut chunk_text = String::new();
  let mut code = Vec::new();
  let mut decoded = false;
- let len = chunk.len() - 1;
-
- println!("chunk len: {len}\tpadding bits: {padding_bits}");
+ let len = chunk.len() - 1; 
+ let padding_bits = padding_bits;
 
  for (index, byte) in chunk.into_iter().enumerate() {
   for i in 0..8u8 {
@@ -46,32 +52,22 @@ fn decode_chunk(padding_bits: u8, chunk: &mut Vec<u8>, table: &Vec<(char, usize,
   }
    let mask = 1 << i;
    let to_bool = (mask & *byte) > 0;
-   //println!("mask: {:08b}\nbyte: {:08b}", mask, byte);
    code.push(to_bool);
-   //println!("{:?}", code);
    let is_code = table.iter().find(|element| element.2 == code);
-
    if len == index && padding_bits == i  {
-    println!("FIN, padding {} == {}", padding_bits, i);
     break;
    }
-   
    match is_code {
     None => {
-     //println!("NON");
      continue
     },
     Some((char, _, _)) => {
-     //println!("{} == {} && {} == {}", len, index, padding_bits, i);
-     
      chunk_text.push(*char);
-     //println!("añadido {}, actual text:{}", char, chunk_text);
      decoded = true;
     },
    }
   }
  }
- println!("CHUNK: {}", chunk_text);
  chunk_text
 }
 
@@ -82,15 +78,12 @@ fn get_chunks(data_chunks: &mut Vec<Vec<u8>>, data: &mut BufReader<File>) -> Res
  let mut chunks = [0u8;1];
  let _ = data.read_exact(&mut chunks);
 
- println!("num chunks: {}", chunks[0]);
-
  for _ in 0..chunks[0] {
   let mut len = [0u8; 8];
 
   let _ = data.read_exact(&mut len);
 
   let len = usize::from_be_bytes(len) + 1;
-  println!("len of chunk: {len}");
   let mut chunk = vec![0; len];
   
   let _ = data.read_exact( &mut chunk);
