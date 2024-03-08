@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fs::File, io::{BufReader, Read}};
+use std::{collections::{BTreeMap, HashMap}, fs::File, io::{BufReader, Read}};
 
 use crate::huff::HuffCode;
 
@@ -28,8 +28,8 @@ pub fn get_header(code: &HuffCode) -> (Vec<u8>, usize, Vec<bool>) {
  header
 }
 
-pub fn parse_headers(reader: &mut BufReader<File>) -> (usize, String, Vec<(char, usize, Vec<bool>)>) {
- let mut table: (usize, String, Vec<(char, usize, Vec<bool>)>)  = (0, String::new(), Vec::new());
+pub fn parse_headers(reader: &mut BufReader<File>) -> (usize, String, HashMap<Vec<bool>, char>) {
+ let mut table: (usize, String, HashMap<Vec<bool>, char>)  = (0, String::new(), HashMap::new());
  let mut u8_vector: Vec<u8> = Vec::new();
  let mut header_length = [0u8; 1];
  let mut extension = [0u8; 3];
@@ -46,8 +46,6 @@ pub fn parse_headers(reader: &mut BufReader<File>) -> (usize, String, Vec<(char,
   table.1.push(char as char);
  }
 
- println!("{}", table.1.len());
-
  let mut count = header_length[0];
 
  while count > 0 {
@@ -62,7 +60,7 @@ pub fn parse_headers(reader: &mut BufReader<File>) -> (usize, String, Vec<(char,
 
   let code_bool_vector = parse_code(u8_vector.clone());
 
-  table.2.push((parse_char(char_buff) , code_length[0] as usize, code_bool_vector));
+  table.2.insert(code_bool_vector, parse_char(char_buff));
 
   count -= 1;
  }

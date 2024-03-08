@@ -1,4 +1,4 @@
-use std::{error::Error, fs::File, io::{BufReader, Read}, sync::Arc, thread, time::Instant};
+use std::{collections::HashMap, error::Error, fs::File, io::{BufReader, Read}, sync::Arc, thread, time::Instant};
 
 //use num_cpus::get;
 
@@ -8,7 +8,7 @@ use std::{error::Error, fs::File, io::{BufReader, Read}, sync::Arc, thread, time
 
 } */
 
-pub fn decode_file(reader: &mut BufReader<File>, table: Arc<Vec<(char, usize, Vec<bool>)>>) -> String {
+pub fn decode_file(reader: &mut BufReader<File>, table: Arc<HashMap<Vec<bool>, char>>) -> String {
  let mut data_chunks = Vec::new();
  let mut decoded_text = String::new();
 
@@ -36,24 +36,18 @@ pub fn decode_file(reader: &mut BufReader<File>, table: Arc<Vec<(char, usize, Ve
  decoded_text
 }
 
-
-fn decode_chunk(padding_bits: u8, chunk: &mut Vec<u8>, table: &Vec<(char, usize, Vec<bool>)>) -> String {
+fn decode_chunk(padding_bits: u8, chunk: &mut Vec<u8>, table: &HashMap<Vec<bool>, char>) -> String {
  let mut chunk_text = String::new();
  let mut code = Vec::new();
- let mut decoded = false;
  let len = chunk.len() - 1; 
  let padding_bits = padding_bits;
 
  for (index, byte) in chunk.into_iter().enumerate() {
-  for i in 0..8u8 {
-   if decoded {
-   code = Vec::new();
-   decoded = false;
-  }
+  for i in 0..8 {
    let mask = 1 << i;
    let to_bool = (mask & *byte) > 0;
    code.push(to_bool);
-   let is_code = table.iter().find(|element| element.2 == code);
+   let is_code = table.get(&code);
    if len == index && padding_bits == i  {
     break;
    }
@@ -61,9 +55,9 @@ fn decode_chunk(padding_bits: u8, chunk: &mut Vec<u8>, table: &Vec<(char, usize,
     None => {
      continue
     },
-    Some((char, _, _)) => {
+    Some(char) => {
      chunk_text.push(*char);
-     decoded = true;
+     code.clear()
     },
    }
   }
